@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>数字的魔法 · 三个求和公式 — 费曼式漫游</title>
+<meta name="description" content="用画图和故事讲明白自然数求和、平方和、立方和三个公式——费曼式教学法，为 11 岁小数学家打造">
+<style>
+/* ═══════════════ 基础 ═══════════════ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --purple:#6c5ce7; --coral:#fd79a8; --lightpurple:#a29bfe; --teal:#00cec9;
+  --bg:#0a0a14; --card:#12121f; --card2:#181828;
+  --text:#e8e8f5; --dim:#8888bb; --dim2:#6666aa;
+  --radius:14px;
+}
+html{scroll-behavior:smooth;padding-bottom:env(safe-area-inset-bottom,0px)}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  line-height:1.7;font-size:16px;overflow-x:hidden;
+}
+/* 渐变背景 */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(108,92,231,.18), transparent 60%),
+    radial-gradient(700px 400px at -10% 30%, rgba(253,121,168,.10), transparent 60%),
+    radial-gradient(600px 500px at 60% 110%, rgba(162,155,254,.08), transparent 60%);
+}
+::selection{background:rgba(108,92,231,.4)}
+a{color:var(--lightpurple);text-decoration:none}
+
+/* ═══════════════ 顶栏 ═══════════════ */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;
+  background:rgba(10,10,20,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(108,92,231,.15);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.95rem}
+.brand .logo{
+  width:32px;height:32px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--purple),var(--coral));
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+}
+.brand small{display:block;font-weight:400;color:var(--dim);font-size:.68rem;line-height:1.2}
+/* 桌面导航 */
+.desknav{display:flex;gap:4px}
+.desknav a{
+  padding:6px 12px;border-radius:8px;font-size:.8rem;color:var(--dim);
+  transition:all .25s;white-space:nowrap;
+}
+.desknav a:hover{color:var(--lightpurple);background:rgba(108,92,231,.08)}
+.desknav a.active{color:var(--text);background:rgba(108,92,231,.15)}
+/* 进度条 */
+.progress{
+  position:fixed;top:0;left:0;height:3px;z-index:101;width:0%;
+  background:linear-gradient(90deg,var(--purple),var(--coral));
+  transition:width .1s linear;
+}
+
+/* ═══════════════ 布局 ═══════════════ */
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+section{padding:56px 0 24px;scroll-margin-top:70px}
+
+/* ═══════════════ Hero ═══════════════ */
+.hero{padding:110px 0 40px;text-align:center}
+.hero .kicker{
+  display:inline-block;padding:4px 14px;border-radius:20px;font-size:.72rem;
+  background:rgba(108,92,231,.12);color:var(--lightpurple);margin-bottom:18px;
+  letter-spacing:2px;
+}
+.hero h1{
+  font-size:clamp(1.9rem,5.5vw,3rem);line-height:1.25;margin-bottom:14px;
+  background:linear-gradient(120deg,#fff,var(--lightpurple),var(--coral));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{color:var(--dim);max-width:520px;margin:0 auto 26px;font-size:.95rem}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{
+  display:inline-block;padding:11px 22px;border-radius:12px;font-size:.88rem;font-weight:600;
+  background:linear-gradient(135deg,var(--purple),#5a4bd1);color:#fff;transition:transform .2s,box-shadow .2s;
+  box-shadow:0 4px 18px rgba(108,92,231,.3);
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(108,92,231,.45)}
+.btn.ghost{background:rgba(108,92,231,.08);color:var(--lightpurple);box-shadow:none;border:1px solid rgba(108,92,231,.25)}
+.btn.ghost:hover{background:rgba(108,92,231,.15)}
+
+/* ═══════════════ 章节 ═══════════════ */
+.tag{
+  display:inline-block;padding:3px 12px;border-radius:8px;font-size:.7rem;font-weight:600;
+  letter-spacing:1px;margin-bottom:10px;background:rgba(108,92,231,.14);color:var(--lightpurple);
+}
+h2{font-size:clamp(1.35rem,4vw,1.8rem);margin-bottom:8px;line-height:1.35}
+h2 .hl{
+  background:linear-gradient(120deg,var(--lightpurple),var(--coral));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.lead{color:var(--dim);margin-bottom:22px;font-size:.95rem}
+
+/* 卡片 */
+.card{
+  background:var(--card);border:1px solid rgba(108,92,231,.1);border-radius:var(--radius);
+  padding:22px;margin:18px 0;
+}
+.card h3{font-size:1.02rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .num{
+  width:24px;height:24px;border-radius:7px;flex-shrink:0;font-size:.75rem;
+  background:rgba(108,92,231,.18);color:var(--lightpurple);
+  display:flex;align-items:center;justify-content:center;font-weight:700;
+}
+.card p{color:#c8c8e0;font-size:.92rem;margin-bottom:10px}
+.card p:last-child{margin-bottom:0}
+
+/* 关键句 */
+.key{
+  border-left:3px solid var(--coral);background:rgba(253,121,168,.06);
+  padding:14px 16px;border-radius:0 10px 10px 0;margin:16px 0;
+  font-size:.9rem;color:#f0d0dd;
+}
+.key b{color:var(--coral)}
+
+/* 故事卡 */
+.story{
+  background:linear-gradient(135deg,rgba(108,92,231,.08),rgba(253,121,168,.05));
+  border:1px solid rgba(162,155,254,.15);border-radius:var(--radius);padding:20px;margin:18px 0;
+}
+.story .s-tag{font-size:.7rem;color:var(--coral);font-weight:600;letter-spacing:1px;margin-bottom:8px;display:block}
+.story p{font-size:.92rem;color:#d8d8ee}
+
+/* 公式 */
+.formula{
+  text-align:center;padding:24px 16px;margin:20px 0;position:relative;border-radius:14px;
+  background:rgba(108,92,231,.05);border:1px solid rgba(108,92,231,.14);
+}
+.formula .f{
+  font-size:clamp(1.35rem,4.5vw,2rem);font-weight:800;color:var(--lightpurple);
+  letter-spacing:2px;font-family:Georgia,'Times New Roman',serif;
+}
+.formula .f-desc{color:var(--dim);font-size:.8rem;margin-top:6px}
+.formula .f-tag{display:inline-block;padding:2px 10px;border-radius:8px;background:rgba(108,92,231,.1);color:var(--purple);font-size:.65rem;margin-bottom:8px}
+
+/* ═══════════════ 图示区 ═══════════════ */
+.diagram{
+  background:var(--card2);border:1px solid rgba(108,92,231,.1);border-radius:var(--radius);
+  padding:16px;margin:20px 0;text-align:center;
+}
+.diagram svg{max-width:100%;height:auto}
+.cap{color:var(--dim2);font-size:.75rem;margin-top:10px;text-align:center}
+
+/* ═══════════════ 交互 ═══════════════ */
+.interactive{
+  background:linear-gradient(135deg,rgba(108,92,231,.06),rgba(253,121,168,.04));
+  border:1px solid rgba(108,92,231,.18);border-radius:var(--radius);padding:22px;margin:22px 0;
+}
+.i-title{font-size:.95rem;font-weight:700;margin-bottom:14px;color:var(--lightpurple)}
+.slider-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.slider-row label{font-size:.8rem;color:var(--dim);white-space:nowrap}
+input[type=range]{
+  flex:1;min-width:160px;height:6px;-webkit-appearance:none;appearance:none;
+  background:rgba(108,92,231,.2);border-radius:3px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),var(--coral));
+  cursor:pointer;box-shadow:0 0 12px rgba(253,121,168,.4);border:2px solid #fff2;
+}
+input[type=range]::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),var(--coral));
+  cursor:pointer;border:2px solid #fff2;
+}
+.n-badge{
+  font-size:1.3rem;font-weight:800;color:var(--coral);min-width:42px;text-align:center;
+  font-family:Georgia,serif;
+}
+.result-box{
+  display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px;
+}
+.rchip{
+  background:rgba(108,92,231,.1);border:1px solid rgba(108,92,231,.2);
+  padding:10px 14px;border-radius:10px;font-size:.82rem;color:var(--dim);text-align:center;min-width:110px;
+}
+.rchip b{display:block;font-size:1.15rem;color:var(--text);margin-top:2px;font-family:Georgia,serif}
+.rchip b.hot{color:var(--coral)}
+
+/* 算式展开 */
+.expand{
+  font-family:Georgia,serif;font-size:.9rem;color:var(--dim);
+  margin-top:10px;min-height:24px;letter-spacing:1px;word-break:break-all;
+}
+.expand .eq{color:var(--lightpurple);font-weight:600}
+
+/* ═══════════════ 挑战 ═══════════════ */
+.challenge{
+  background:linear-gradient(135deg,rgba(253,121,168,.08),rgba(108,92,231,.08));
+  border:1px solid rgba(253,121,168,.2);border-radius:var(--radius);padding:24px;margin:22px 0;
+  text-align:center;
+}
+.challenge h3{color:var(--coral);margin-bottom:10px;font-size:1.05rem}
+.challenge .q{font-size:1.1rem;font-weight:700;margin:10px 0;font-family:Georgia,serif;letter-spacing:1px}
+.reveal-btn{
+  margin-top:14px;padding:10px 26px;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--coral),var(--purple));color:#fff;font-size:.9rem;font-weight:600;
+  transition:transform .2s;font-family:inherit;
+}
+.reveal-btn:hover{transform:translateY(-2px)}
+.answer{display:none;margin-top:14px;padding:14px;border-radius:10px;background:rgba(0,206,201,.08);border:1px solid rgba(0,206,201,.2);font-size:.92rem;color:#bfecea}
+.answer.show{display:block;animation:fadein .4s}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ═══════════════ 页脚 ═══════════════ */
+footer{
+  padding:50px 20px 110px;text-align:center;color:var(--dim2);font-size:.78rem;line-height:2;
+}
+footer .sig{font-size:1.1rem}
+
+/* ═══════════════ 底部 Tab（移动端） ═══════════════ */
+.bottabs{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  display:none;background:rgba(10,10,20,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid rgba(108,92,231,.15);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));
+}
+.bottabs a{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 2px;border-radius:10px;color:var(--dim2);font-size:.62rem;
+  transition:color .2s;
+}
+.bottabs a .ic{font-size:1.15rem;line-height:1.2}
+.bottabs a.active{color:var(--coral);background:rgba(253,121,168,.08)}
+
+/* 回到顶部 */
+.totop{
+  position:fixed;right:18px;bottom:80px;z-index:99;width:40px;height:40px;border-radius:12px;
+  background:rgba(108,92,231,.15);border:1px solid rgba(108,92,231,.3);color:var(--lightpurple);
+  font-size:1.1rem;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);
+}
+.totop.show{opacity:1;pointer-events:auto}
+
+/* 滚动出现动画 */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ═══════════════ 响应式 ═══════════════ */
+@media(max-width:768px){
+  .desknav{display:none}
+  .bottabs{display:flex}
+  .wrap{padding:0 16px}
+  section{padding:44px 0 18px}
+  .hero{padding:96px 0 30px}
+  .card,.story{padding:18px}
+  footer{padding-bottom:120px}
+}
+@media(min-width:769px){
+  .totop{bottom:24px}
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- ═════════ 顶栏 ═════════ -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">∑</div>
+    <div>
+      数字的魔法
+      <small>三个求和公式 · 费曼式漫游</small>
+    </div>
+  </div>
+  <nav class="desknav">
+    <a href="#ch1" class="navlink active">① 自然数</a>
+    <a href="#ch2" class="navlink">② 平方和</a>
+    <a href="#ch3" class="navlink">③ 立方和</a>
+    <a href="#challenge" class="navlink">🎯 挑战</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- ═════════ Hero ═════════ -->
+  <section class="hero">
+    <div class="kicker">费曼式教学法 · 直觉优先</div>
+    <h1>数字的魔法：<br>三个求和公式</h1>
+    <p>1+2+3+… 一直加到 n 是多少？平方、立方加起来又是多少？<br>不背公式——用画图、用故事、用手滑，把它们"看"明白。</p>
+    <div class="hero-cta">
+      <a href="#ch1" class="btn">开始探索 →</a>
+      <a href="#challenge" class="btn ghost">直接挑战</a>
+    </div>
+  </section>
+
+  <!-- ═════════ Ch1: 自然数求和 ═════════ -->
+  <section id="ch1">
+    <div class="tag">第一章 · 高斯的故事</div>
+    <h2>自然数求和：<span class="hl">1+2+3+…+n</span></h2>
+    <p class="lead">先从最简单的开始：把 1 到 n 的所有数加起来，有没有"作弊公式"？有——而且是一个小学生发现的。</p>
+
+    <div class="story reveal">
+      <span class="s-tag">📖 故事：小高斯 3 秒算出 5050</span>
+      <p>两百多年前，德国小学老师想偷懒，让全班算 1+2+3+…+100。没想到一个 8 岁小孩几秒钟就写出了答案：<b style="color:var(--coral)">5050</b>。</p>
+      <p style="margin-top:8px">他的办法不是一个个加，而是<b>配对</b>：1+100=101，2+99=101，3+98=101…… 一共 50 对，每对都是 101。50×101 = 5050。就这么简单。</p>
+    </div>
+
+    <div class="diagram reveal">
+      <svg id="stairsSvg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="cap">把 1+2+3+…+n 摆成楼梯：两个一样的楼梯拼起来，正好是一个 n×(n+1) 的长方形</div>
+    </div>
+
+    <div class="formula reveal">
+      <div class="f-tag">核心公式</div>
+      <div class="f">1+2+…+n = n(n+1) / 2</div>
+      <div class="f-desc">楼梯是长方形的一半，所以除以 2</div>
+    </div>
+
+    <div class="interactive reveal">
+      <div class="i-title">🎛️ 自己试试：拖动 n，看楼梯长大</div>
+      <div class="slider-row">
+        <label>n =</label>
+        <input type="range" id="n1" min="1" max="20" value="6">
+        <span class="n-badge" id="n1v">6</span>
+      </div>
+      <svg id="stairsSvg2" viewBox="0 0 340 220" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="expand" id="expand1"></div>
+      <div class="result-box">
+        <div class="rchip">楼梯块数（和）<b class="hot" id="sum1">21</b></div>
+        <div class="rchip">长方形面积<b id="rect1">42</b></div>
+      </div>
+    </div>
+
+    <div class="key reveal">
+      🔑 <b>费曼版：</b>公式不是"背下来"的，是"拼出来"的。楼梯不好算？把它变成长方形——<b>难算的形状，变成好算的形状，这就是数学的魔法。</b>
+    </div>
+  </section>
+
+  <!-- ═════════ Ch2: 平方和 ═════════ -->
+  <section id="ch2">
+    <div class="tag">第二章 · 三角魔法</div>
+    <h2>平方和：<span class="hl">1²+2²+…+n²</span></h2>
+    <p class="lead">1²=1，2²=4，3²=9…… 把这些平方数藏进一个三角形里，转一转、叠一叠，秘密就自己跳出来了。</p>
+
+    <div class="diagram reveal">
+      <svg id="pyrSvg" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="cap">先把平方数叠成台阶看看：1²+2²+3²+4² 一共有 30 块（台阶图，每层 k 格）</div>
+    </div>
+
+    <div class="formula reveal">
+      <div class="f-tag">核心公式</div>
+      <div class="f">1²+2²+…+n² = n(n+1)(2n+1) / 6</div>
+      <div class="f-desc">三个三角形叠在一起，每个格子都变成同一个数</div>
+    </div>
+
+    <div class="card reveal">
+      <h3><span class="num">🧩</span> 第一步：把平方数藏进三角形</h3>
+      <p>画一个三角形：第 1 行放 <b style="color:var(--coral)">1</b> 个 1，第 2 行放 <b style="color:var(--coral)">2</b> 个 2，第 3 行放 <b style="color:var(--coral)">3</b> 个 3……</p>
+      <p>第 k 行：k 个数，每个都是 k → 这一行的和 = k×k = <b style="color:var(--lightpurple)">k²</b>！</p>
+      <p>所以<b>整个三角形的总和 = 1²+2²+…+n²</b>——我们要算的东西，全藏在这个三角形里了。</p>
+    </div>
+
+    <div class="interactive reveal">
+      <div class="i-title">🎬 魔法时刻：三个三角形叠起来（点播放）</div>
+      <div class="slider-row">
+        <label>n =</label>
+        <input type="range" id="n2" min="1" max="6" value="4">
+        <span class="n-badge" id="n2v">4</span>
+      </div>
+      <svg id="triSvg" viewBox="0 0 360 320" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div style="text-align:center;margin-top:10px">
+        <button class="reveal-btn" id="playBtn" onclick="playTri()">▶ 播放变换</button>
+      </div>
+      <div class="expand" id="expand2"></div>
+      <div class="result-box">
+        <div class="rchip">一个三角形总和<b class="hot" id="sum2">30</b></div>
+        <div class="rchip">格子数 × (2n+1)<b id="box2">90</b></div>
+        <div class="rchip">÷3 验证<b id="div2">30</b></div>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <h3><span class="num">✨</span> 第二步：转一转，每个格子都变成 2n+1</h3>
+      <p>把同一个三角形<b>旋转 120°</b> 再画一份，<b>再旋转 120°</b> 画第三份。把三个三角形叠在一起——</p>
+      <p>神奇的事：<b style="color:var(--coral)">每一个格子里，三个数字加起来都等于 2n+1！</b>（n=4 时就是 9）</p>
+      <p>三角形一共有 1+2+…+n = n(n+1)/2 个格子。所以：</p>
+      <p style="color:var(--lightpurple);font-weight:600">3 × (1²+2²+…+n²) = n(n+1)/2 × (2n+1)</p>
+      <p>两边除以 3，公式就自己跳出来了——<b style="color:var(--coral)">这就是除以 6 的秘密</b>（除以 3，再除以 2，合起来除以 6）。</p>
+    </div>
+
+    <div class="key reveal">
+      🔑 <b>费曼版：</b>不会算的东西，就把它<b>变成三个自己</b>，转一转叠起来——每个格子都一样了，就好算了。数学家的日常：把难题变成三份容易的。
+    </div>
+  </section>
+
+  <!-- ═════════ Ch3: 立方和 ═════════ -->
+  <section id="ch3">
+    <div class="tag">第三章 · 最神奇的一个</div>
+    <h2>立方和：<span class="hl">1³+2³+…+n³</span></h2>
+    <p class="lead">做好准备——这个公式会让你"哇"出来。它把第一章和第三章串成了一条线。</p>
+
+    <div class="diagram reveal">
+      <svg id="ringSvg" viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="cap">一层层加"圈"：1×1 外面加宽 2 的圈，再外面加宽 3 的圈……每一圈的面积正好是一个立方数！</div>
+    </div>
+
+    <div class="formula reveal">
+      <div class="f-tag">魔法公式</div>
+      <div class="f">1³+2³+…+n³ = (1+2+…+n)²</div>
+      <div class="f-desc">立方和 = 自然数求和的平方！</div>
+    </div>
+
+    <div class="card reveal">
+      <h3><span class="num">✨</span> 先看数字，再揭秘密</h3>
+      <p>1³ = 1 = 1²</p>
+      <p>1³+2³ = 9 = 3² = (1+2)²</p>
+      <p>1³+2³+3³ = 36 = 6² = (1+2+3)²</p>
+      <p style="color:var(--lightpurple)">1³+2³+3³+4³ = 100 = 10² = (1+2+3+4)²</p>
+    </div>
+
+    <div class="card reveal">
+      <h3><span class="num">🔍</span> 为什么？——看那一圈一圈的"壳"</h3>
+      <p>画一个 1×1 的小方块（面积 1）。在它外面贴一圈<b>宽 2</b> 的框，变成一个 3×3 的大方块——新加的这一圈面积是多少？</p>
+      <p>3×3 − 1×1 = 9 − 1 = <b style="color:var(--coral)">8 = 2³</b>。</p>
+      <p>再在外面贴一圈<b>宽 3</b> 的框，变成 6×6——这一圈：6×6 − 3×3 = 36 − 9 = <b style="color:var(--coral)">27 = 3³</b>。</p>
+      <p>每一圈，正好等于一个立方数！所以：<b style="color:var(--lightpurple)">大正方形的总面积 = 所有圈的立方数加起来</b>。而大正方形的边长 = 1+2+…+n，面积 = (1+2+…+n)²。</p>
+    </div>
+
+    <div class="interactive reveal">
+      <div class="i-title">🎛️ 自己试试：拖动 n，看圈圈长大</div>
+      <div class="slider-row">
+        <label>n =</label>
+        <input type="range" id="n3" min="1" max="6" value="4">
+        <span class="n-badge" id="n3v">4</span>
+      </div>
+      <svg id="ringSvg2" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="expand" id="expand3"></div>
+      <div class="result-box">
+        <div class="rchip">立方和<b class="hot" id="sum3">100</b></div>
+        <div class="rchip">(1+…+n)²<b id="sq3">100</b></div>
+      </div>
+    </div>
+
+    <div class="key reveal">
+      🔑 <b>费曼版：</b>这个公式最漂亮的地方是——<b>它把两个"看似无关"的东西连起来了。</b>立方和（第三章）居然等于自然数求和（第一章）的平方。数学里到处都是这种隐藏的桥，找到一座，就"啊——"一次。
+    </div>
+  </section>
+
+  <!-- ═════════ 挑战 ═════════ -->
+  <section id="challenge">
+    <div class="tag">终极挑战</div>
+    <h2 style="text-align:center">🎯 三关挑战</h2>
+
+    <div class="challenge reveal">
+      <h3>第一关 · 热身</h3>
+      <div class="q">1+2+3+…+50 = ？</div>
+      <button class="reveal-btn" onclick="toggleAns('a1')">揭晓答案</button>
+      <div class="answer" id="a1"><b>1275</b> —— 配对：50 个数，25 对，每对 51。25×51 = 1275。</div>
+    </div>
+
+    <div class="challenge reveal">
+      <h3>第二关 · 进阶</h3>
+      <div class="q">1²+2²+3²+…+10² = ？</div>
+      <button class="reveal-btn" onclick="toggleAns('a2')">揭晓答案</button>
+      <div class="answer" id="a2"><b>385</b> —— 公式：10×11×21÷6 = 2310÷6 = 385。</div>
+    </div>
+
+    <div class="challenge reveal">
+      <h3>第三关 · 魔法</h3>
+      <div class="q">1³+2³+3³+…+10³ = ？</div>
+      <button class="reveal-btn" onclick="toggleAns('a3')">揭晓答案</button>
+      <div class="answer" id="a3"><b>3025</b> —— 先算 1+2+…+10 = 55，再平方：55² = 3025。是不是比你想的快多了？</div>
+    </div>
+
+    <div class="key reveal">
+      🔑 <b>终极秘密：</b>第三关 3025 = 55²，第一关 55——<b>三关是连在一起的。</b>学会"拼图形"这一个思路，三个公式一次全记住。
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="sig">🦞</div>
+  <div>数字的魔法 · 三个求和公式</div>
+  <div>费曼式教学法：直觉优先，画图先行，故事辅佐</div>
+</footer>
+
+<!-- ═════════ 底部 Tab ═════════ -->
+<nav class="bottabs">
+  <a href="#ch1" class="btab active"><span class="ic">①</span>自然数</a>
+  <a href="#ch2" class="btab"><span class="ic">②</span>平方和</a>
+  <a href="#ch3" class="btab"><span class="ic">③</span>立方和</a>
+  <a href="#challenge" class="btab"><span class="ic">🎯</span>挑战</a>
+</nav>
+
+<button class="totop" id="totop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+/* ═══════════ 工具 ═══════════ */
+function el(id){return document.getElementById(id)}
+
+/* 楼梯 SVG（静态展示，n=6） */
+function drawStairs(svgId, n, x0, y0, cell, color1, color2){
+  const svg = el(svgId); if(!svg) return;
+  let s = '';
+  for(let i=1;i<=n;i++){
+    const y = y0 + (i-1)*cell;   // i=1（1格）在顶，i=n（n格）在底
+    for(let j=0;j<i;j++){
+      const fill = (i+j)%2===0 ? color1 : color2;
+      s += `<rect x="${x0+j*cell}" y="${y}" width="${cell-1}" height="${cell-1}" rx="2" fill="${fill}"/>`;
+    }
+  }
+  svg.innerHTML = s;
+}
+
+/* 金字塔 SVG：侧视台阶——每层 k×k 的方块显示为 k 格宽×1 格高，居中堆叠，顶层1×1在上、底层n×n在下 */
+function drawPyramid(svgId, n, cx, y0, cell){
+  const svg = el(svgId); if(!svg) return;
+  let s = '';
+  for(let k=1;k<=n;k++){
+    const alpha = 0.3 + 0.7*(k/n); // 底层最亮
+    const c = k%2===0 ? `rgba(253,121,168,${alpha})` : `rgba(108,92,231,${alpha})`;
+    const w = k*cell;
+    const x = cx - w/2;        // 每层居中
+    const y = y0 + (k-1)*cell; // k=1（1格）在顶，k=n（n格）在底
+    for(let j=0;j<k;j++){
+      s += `<rect x="${x+j*cell}" y="${y}" width="${cell-1}" height="${cell-1}" rx="1" fill="${c}"/>`;
+    }
+  }
+  svg.innerHTML = s;
+}
+
+/* 圈层 SVG：正方形 + 外圈（实心色带） */
+function drawRings(svgId, n, cx, cy, cell){
+  const svg = el(svgId); if(!svg) return;
+  let s = '';
+  // 每圈宽度 = k，边长累计
+  let side = 0;
+  for(let k=1;k<=n;k++){
+    side += k;
+  }
+  const colors = ['#6c5ce7','#fd79a8','#a29bfe','#00cec9','#fdcb6e','#e17055'];
+  const x0 = cx - side*cell/2, y0 = cy - side*cell/2;
+  // 从外到内画实心方块，内圈覆盖外圈中心，形成色带
+  let outer = side;
+  for(let k=n;k>=1;k--){
+    const inner = outer - k;
+    const c = colors[(k-1)%colors.length];
+    for(let i=0;i<outer;i++){
+      for(let j=0;j<outer;j++){
+        s += `<rect x="${x0+j*cell}" y="${y0+i*cell}" width="${cell}" height="${cell}" fill="${c}" opacity="0.85"/>`;
+      }
+    }
+    // 内圈区域将被下一轮（更小的圈）覆盖
+    outer = inner;
+  }
+  svg.innerHTML = s;
+}
+
+/* 滑动条样式注入（动态色） */
+function injectSliderCSS(){
+  const style = document.createElement('style');
+  style.textContent = `
+    input[type=range]{accent-color:#fd79a8}
+  `;
+  document.head.appendChild(style);
+}
+
+/* ═══════════ Ch1 交互 ═══════════ */
+function updateCh1(){
+  const n = parseInt(el('n1').value);
+  el('n1v').textContent = n;
+  // 动态楼梯（大图）——n 大时自动缩小格子，避免溢出画布
+  const sc = n<=6 ? 26 : (n<=10 ? 18 : (n<=15 ? 13 : 10));
+  drawStairs('stairsSvg2', n, 30, 20, sc, 'rgba(108,92,231,.75)', 'rgba(253,121,168,.65)');
+  const sum = n*(n+1)/2;
+  el('sum1').textContent = sum;
+  el('rect1').textContent = n*(n+1);
+  // 展开算式
+  let parts = [];
+  for(let i=1;i<=n;i++) parts.push(i);
+  el('expand1').innerHTML = parts.join(' + ') + ` <span class="eq">= ${sum}</span>`;
+}
+el('n1').addEventListener('input', updateCh1);
+
+/* ═══════════ 三角魔法（Ch2）：三个三角形旋转叠放 ═══════════ */
+/* 三角形：第 r 行（0-indexed）有 r+1 个数，每个数 = r+1。
+   三个副本旋转 120°/240° 叠放后，每格三数之和 = 2n+1 */
+let triPhase = 0;   // 0=未叠, 1=叠好
+let triTimer = null;
+
+function triCellPos(n, s, r, c){
+  // 行 r 居中：x 从 -(r/2) 到 +(r/2)
+  const sh = s * Math.sqrt(3) / 2;
+  return { x: (c - r/2) * s, y: r * sh };
+}
+
+function triRotate(px, py, deg, cx, cy){
+  const rad = deg * Math.PI / 180;
+  const dx = px - cx, dy = py - cy;
+  return {
+    x: cx + dx * Math.cos(rad) - dy * Math.sin(rad),
+    y: cy + dx * Math.sin(rad) + dy * Math.cos(rad)
+  };
+}
+
+function drawTriStatic(n, s){
+  const svg = el('pyrSvg'); if(!svg) return;
+  // 台阶图：每层 k 格
+  const cell = 30;
+  const cx = 170, yTop = 30;
+  let st = '';
+  for(let k=1;k<=n;k++){
+    const alpha = 0.35 + 0.65*(k/n);
+    const c = k%2===0 ? `rgba(253,121,168,${alpha})` : `rgba(108,92,231,${alpha})`;
+    const w = k*cell;
+    const x = cx - w/2;
+    const y = yTop + (k-1)*cell;
+    for(let j=0;j<k;j++){
+      st += `<rect x="${x+j*cell}" y="${y}" width="${cell-1}" height="${cell-1}" rx="1" fill="${c}"/>`;
+    }
+    st += `<text x="${cx}" y="${y+cell-6}" text-anchor="middle" fill="rgba(255,255,255,.75)" font-size="9">${k}²</text>`;
+  }
+  svg.innerHTML = st;
+}
+
+/* 主三角动画 SVG */
+function drawTriProof(n, s){
+  const svg = el('triSvg'); if(!svg) return;
+  const colors = ['#6c5ce7', '#fd79a8', '#00cec9'];
+  const rotations = [0, 120, 240];
+  const cx = 180, cy = 160;
+  const r0 = 13; // 格子半径
+  const sh = s * Math.sqrt(3) / 2;
+  const totalH = (n-1) * sh;
+  const scale = 1; // 自适应：n 大时缩小
+  let g = '';
+
+  // 三个三角形
+  const rotCx = 0, rotCy = 2*(n-1)*sh/3; // 重心
+  for(let t=0;t<3;t++){
+    const rot = rotations[t];
+    let inner = '';
+    for(let r=0;r<n;r++){
+      for(let c=0;c<=r;c++){
+        const p = triCellPos(n, s, r, c);
+        const pr = triRotate(p.x, p.y, rot, rotCx, rotCy);
+        const x = cx + pr.x, y = cy + pr.y - rotCy;
+        inner += `<circle cx="${x}" cy="${y}" r="${r0*scale}" fill="${colors[t]}" fill-opacity=".22" stroke="${colors[t]}" stroke-width="1.2"/>`;
+        inner += `<text x="${x}" y="${y+4}" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">${r+1}</text>`;
+      }
+    }
+    // 偏移：0 在中间，1 在右上，2 在左下（动画前）
+    const offX = t===0 ? 0 : (t===1 ? 130 : -130);
+    const offY = t===0 ? 0 : (t===1 ? -70 : 90);
+    g += `<g id="tri${t}" transform="translate(${offX},${offY})">${inner}</g>`;
+  }
+  svg.innerHTML = g;
+  triPhase = 0;
+}
+
+function playTri(){
+  if(triTimer){ clearInterval(triTimer); triTimer=null; }
+  const n = parseInt(el('n2').value);
+  const s = n<=3 ? 44 : (n<=5 ? 34 : 26);
+  drawTriProof(n, s);
+  // 逐帧移动 tri1, tri2 到中心
+  const targets = [{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+  const steps = 40;
+  let step = 0;
+  triTimer = setInterval(() => {
+    step++;
+    const k = step/steps;
+    const ease = 1 - Math.pow(1-k, 3);
+    for(let t=1;t<3;t++){
+      const g = el('tri'+t);
+      if(!g) continue;
+      const startX = t===1 ? 130 : -130, startY = t===1 ? -70 : 90;
+      g.setAttribute('transform', `translate(${startX*(1-ease)},${startY*(1-ease)})`);
+    }
+    if(step >= steps){
+      clearInterval(triTimer); triTimer = null;
+      // 叠加完成：显示每格和 = 2n+1
+      showTriSums(n, s);
+      triPhase = 1;
+    }
+  }, 20);
+}
+
+function showTriSums(n, s){
+  const svg = el('triSvg'); if(!svg) return;
+  const colors = ['#6c5ce7', '#fd79a8', '#00cec9'];
+  const rotations = [0, 120, 240];
+  const cx = 180, cy = 160;
+  const r0 = 13;
+  const sh = s * Math.sqrt(3) / 2;
+  const totalH = (n-1) * sh;
+  let g = '';
+  const rotCx = 0, rotCy = 2*(n-1)*sh/3; // 重心
+  // 重新画三个三角形（已叠放）+ 金色求和标签
+  for(let t=0;t<3;t++){
+    const rot = rotations[t];
+    let inner = '';
+    for(let r=0;r<n;r++){
+      for(let c=0;c<=r;c++){
+        const p = triCellPos(n, s, r, c);
+        const pr = triRotate(p.x, p.y, rot, rotCx, rotCy);
+        const x = cx + pr.x, y = cy + pr.y - rotCy;
+        inner += `<circle cx="${x}" cy="${y}" r="${r0}" fill="${colors[t]}" fill-opacity=".13" stroke="${colors[t]}" stroke-width="1"/>`;
+      }
+    }
+    g += `<g id="tri${t}" transform="translate(0,0)">${inner}</g>`;
+  }
+  // 金色求和标签：每格 2n+1（用 t=0 的格子坐标）
+  for(let r=0;r<n;r++){
+    for(let c=0;c<=r;c++){
+      const p = triCellPos(n, s, r, c);
+      const pr = triRotate(p.x, p.y, 0, rotCx, rotCy);
+      const x = cx + pr.x, y = cy + pr.y - rotCy;
+      g += `<circle cx="${x}" cy="${y}" r="${r0+2}" fill="rgba(253,121,168,.15)" stroke="#fdcb6e" stroke-width="1.5"/>`;
+      g += `<text x="${x}" y="${y+4}" text-anchor="middle" fill="#fdcb6e" font-size="12" font-weight="800">${2*n+1}</text>`;
+    }
+  }
+  svg.innerHTML = g;
+}
+
+/* ═══════════ Ch2 交互 ═══════════ */
+function updateCh2(){
+  const n = parseInt(el('n2').value);
+  el('n2v').textContent = n;
+  drawTriStatic(n);
+  const s = n<=3 ? 44 : (n<=5 ? 34 : 26);
+  drawTriProof(n, s);
+  const sum = n*(n+1)*(2*n+1)/6;
+  const cells = n*(n+1)/2;
+  el('sum2').textContent = sum;
+  el('box2').textContent = cells*(2*n+1);
+  el('div2').textContent = cells*(2*n+1)/3;
+  let parts = [];
+  for(let i=1;i<=n;i++) parts.push(i+'²');
+  el('expand2').innerHTML = parts.join(' + ') + ` <span class="eq">= ${sum}</span>`;
+}
+el('n2').addEventListener('input', updateCh2);
+
+/* ═══════════ Ch3 交互 ═══════════ */
+function updateCh3(){
+  const n = parseInt(el('n3').value);
+  el('n3v').textContent = n;
+  const cell = n<=3 ? 26 : (n<=4 ? 18 : 13);
+  drawRings('ringSvg2', n, 180, 180, cell);
+  const sumNat = n*(n+1)/2;
+  let sumCube = 0;
+  for(let i=1;i<=n;i++) sumCube += i*i*i;
+  el('sum3').textContent = sumCube;
+  el('sq3').textContent = sumNat*sumNat;
+  let parts = [];
+  for(let i=1;i<=n;i++) parts.push(i+'³');
+  el('expand3').innerHTML = parts.join(' + ') + ` <span class="eq">= ${sumCube} = (${sumNat})²</span>`;
+}
+el('n3').addEventListener('input', updateCh3);
+
+/* ═══════════ 挑战题 ═══════════ */
+function toggleAns(id){
+  const a = el(id);
+  a.classList.toggle('show');
+}
+
+/* ═══════════ 滚动效果 ═══════════ */
+const progress = el('progress');
+const totop = el('totop');
+const navlinks = document.querySelectorAll('.navlink');
+const btab = document.querySelectorAll('.btab');
+const sectionIds = ['ch1','ch2','ch3','challenge'];
+
+function onScroll(){
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = pct + '%';
+  totop.classList.toggle('show', h.scrollTop > 400);
+  // 高亮当前章节
+  let current = 'ch1';
+  for(const id of sectionIds){
+    const s = document.getElementById(id);
+    if(s && s.getBoundingClientRect().top <= 140) current = id;
+  }
+  navlinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+current));
+  btab.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+current));
+  // reveal 动画
+  document.querySelectorAll('.reveal').forEach(r => {
+    if(r.getBoundingClientRect().top < window.innerHeight - 40) r.classList.add('visible');
+  });
+}
+window.addEventListener('scroll', onScroll, {passive:true});
+
+/* ═══════════ 初始化 ═══════════ */
+drawStairs('stairsSvg', 6, 20, 20, 22, 'rgba(108,92,231,.75)', 'rgba(253,121,168,.65)');
+drawTriStatic(4);
+drawTriProof(4, 44);
+drawRings('ringSvg', 4, 170, 170, 18);
+updateCh1(); updateCh2(); updateCh3();
+onScroll();
+</script>
+</body>
+</html>
