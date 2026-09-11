@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="max-age=0, must-revalidate">
+<title>数的故事 · 翻书</title>
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a1a;display:flex;justify-content:center;align-items:center;min-height:100dvh;padding:12px;font-family:-apple-system,'PingFang SC','Helvetica Neue',sans-serif;overflow:hidden;user-select:none;touch-action:none}
+.book-stage{perspective:2500px;width:min(100% - 24px,460px);position:relative;display:flex;justify-content:center}
+.book-shadow{position:absolute;bottom:-8px;left:8%;width:84%;height:clamp(12px,3vw,24px);background:radial-gradient(ellipse at center,rgba(0,0,0,.3) 0%,transparent 70%);filter:blur(clamp(4px,1vw,10px));pointer-events:none;z-index:0}
+.book{position:relative;width:100%;aspect-ratio:1086/1448;transform-style:preserve-3d;z-index:1}
+.page{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;border-radius:3px;background:#222}
+.page img{width:100%;height:100%;display:block;object-fit:fill}
+.page-current{z-index:2;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3))}
+.page-underneath{z-index:1}
+.page-flipper{position:absolute;top:0;left:0;width:100%;height:100%;z-index:4;transform-style:preserve-3d;transform-origin:left center;pointer-events:none;will-change:transform}
+.page-flipper .page-front,.page-flipper .page-back{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;overflow:hidden}
+.page-flipper .page-back{transform:rotateY(180deg)}
+.page-flipper .page-back::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#f5f0e8 0%,#ede5d5 50%,#f0e8d8 100%);opacity:.85}
+.curl-shadow{position:absolute;top:0;left:0;width:100%;height:100%;z-index:3;pointer-events:none;opacity:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,transparent 25%)}
+.nav-zone{position:absolute;top:0;height:100%;width:35%;z-index:10;cursor:pointer;opacity:0}
+.nav-left{left:0}.nav-right{right:0}
+.indicator{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:rgba(255,255,255,.85);padding:6px 18px;border-radius:16px;font-size:13px;z-index:20;backdrop-filter:blur(10px);pointer-events:none}
+@media(min-width:768px){.book-stage{width:min(100% - 48px,520px)}.indicator{bottom:32px;padding:8px 22px;font-size:14px}}
+@media(min-width:1024px){body{padding:32px}.book-stage{width:min(100% - 64px,580px)}.indicator{bottom:40px;padding:10px 28px}}
+@media(orientation:landscape) and (max-height:500px){.book-stage{width:auto;height:calc(100dvh - 40px)}.book{width:auto;height:100%}.indicator{bottom:6px;padding:3px 12px;font-size:11px}}
+</style>
+</head>
+<body>
+
+<div class="book-stage">
+  <div class="book-shadow"></div>
+  <div class="book" id="book"></div>
+  <div class="nav-zone nav-left" id="navLeft"></div>
+  <div class="nav-zone nav-right" id="navRight"></div>
+</div>
+<div class="indicator" id="indicator">1 / 22</div>
+
+<script>
+(function(){
+'use strict';
+
+var N=22, cur=0, flip=false, loaded={};
+var bk=document.getElementById('book'), ind=document.getElementById('indicator');
+
+// Image URLs: local pages/ primary; jsDelivr CDN secondary
+// ⚠️ 2026-09-11: 原 CDN 指向 jasoneip01-pixel/quantum-mechanics（账号已封，实测 404）→ 本地优先
+var CDN='pages/page-';
+function cdnUrl(n){return CDN+String(n).padStart(2,'0')+'.jpg'}
+function gitUrl(n){return 'https://cdn.jsdelivr.net/gh/k286c7hg65-hub/quantum-mechanics@gh-pages/story-of-numbers/pages/page-'+String(n).padStart(2,'0')+'.jpg'}
+
+// Create a single <img> with dual fallback
+function makeImg(n,alt){
+  var img=document.createElement('img');
+  img.src=cdnUrl(n);
+  img.alt=alt||'第'+n+'页';
+  img.draggable=false;
+  img.loading='lazy';
+  img.onerror=function(){
+    if(!this.dataset.git){
+      this.dataset.git='1';
+      this.src=gitUrl(n);
+    }
+  };
+  return img;
+}
+
+// Load a page's image (lazy)
+function loadPg(i){
+  if(loaded[i])return;
+  var el=bk.querySelector('.page[data-page="'+i+'"]');
+  if(!el)return;
+  var img=el.querySelector('img');
+  if(!img||img.src&&img.src!==''&&img.src!==location.href){loaded[i]=1;return}
+  var n=i+1;
+  el.innerHTML='';
+  el.appendChild(makeImg(n,i===0?'封面':i===N-1?'封底':'第'+n+'页'));
+  loaded[i]=1;
+}
+function preload(i){
+  if(i>0)loadPg(i-1);
+  loadPg(i);
+  if(i<N-1)loadPg(i+1);
+}
+
+// Build pages
+for(var i=0;i<N;i++){
+  var d=document.createElement('div');
+  d.className='page';d.dataset.page=i;
+  if(i===0)d.appendChild(makeImg(1,'封面'));
+  else d.innerHTML='<div style="width:100%;height:100%;background:#2a2a2a"></div>';
+  d.style.display=i===0?'block':'none';
+  bk.appendChild(d);
+}
+
+function gP(i){return bk.querySelector('.page[data-page="'+i+'"]')}
+function sP(i,z,c){var e=gP(i);if(!e)return;e.style.display='block';e.style.zIndex=z;if(c)e.className='page '+c}
+function hA(){var p=bk.querySelectorAll('.page');for(var i=0;i<p.length;i++)p[i].style.display='none'}
+function uI(){ind.textContent=(cur===0?'封面':''+(cur+1))+' / '+N}
+
+function rC(){hA();sP(cur,2,'page-current');preload(cur);uI()}
+
+function cl(){var f=bk.querySelector('.page-flipper');if(f)f.remove();var s=bk.querySelector('.curl-shadow');if(s)s.remove()}
+
+// CSS transition-based flip (simpler, more compatible than rAF)
+function doFlip(dst,dir){
+  if(flip||dst<0||dst>=N)return;
+  loadPg(dst);
+  var t=dst>cur?cur:dst;
+  flip=true;
+  hA();
+  sP(dst,1,'page-underneath');
+  if(dir<0)sP(cur,2,'page-current');
+
+  var sh=document.createElement('div');
+  sh.className='curl-shadow';
+  if(dir>0)sh.style.cssText='background:linear-gradient(to right,rgba(0,0,0,.55) 0%,transparent 25%)';
+  else sh.style.cssText='background:linear-gradient(to left,rgba(0,0,0,.55) 0%,transparent 25%)';
+  bk.appendChild(sh);
+
+  var fl=document.createElement('div');
+  fl.className='page-flipper';
+  if(dir<0)fl.style.transform='perspective(2000px) rotateY(-180deg)';
+
+  var fr=document.createElement('div');
+  fr.className='page-front';
+  var fi=document.createElement('img');
+  fi.src=cdnUrl(t+1);   /* 2026-09-11 修复: imgUrl 从未定义 → 翻页必崩 */
+  fi.draggable=false;
+  fi.onerror=function(){if(!this.dataset.git){this.dataset.git='1';this.src=gitUrl(t+1)}};
+  fr.appendChild(fi);
+  var ba=document.createElement('div');
+  ba.className='page-back';
+  fl.appendChild(fr);fl.appendChild(ba);
+  bk.appendChild(fl);
+
+  if(dst<N-1)loadPg(dst+1);
+  if(dst>0)loadPg(dst-1);
+
+  // Animate using CSS transition (browser-optimized)
+  var a=dir>0?[-180,1]:[0,0];
+  sh.style.opacity='0.35';
+  fl.style.transition='transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)';
+
+  // Force reflow
+  fl.offsetHeight;
+
+  if(dir>0)fl.style.transform='perspective(2000px) rotateY(-180deg)';
+  else fl.style.transform='perspective(2000px) rotateY(0deg)';
+
+  var done=function(){
+    cur=dst;cl();rC();flip=false;
+  };
+
+  var onEnd=function(){
+    fl.removeEventListener('transitionend',onEnd);
+    done();
+  };
+  fl.addEventListener('transitionend',onEnd);
+  // Safety fallback
+  setTimeout(function(){if(flip){flip=false;cl();cur=dst;rC()}},1000);
+}
+
+function next(){doFlip(cur+1,1)}
+function prev(){doFlip(cur-1,-1)}
+
+document.getElementById('navRight').addEventListener('click',next);
+document.getElementById('navLeft').addEventListener('click',prev);
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next()}
+  if(e.key==='ArrowLeft'){e.preventDefault();prev()}
+});
+
+var tx=0,sw=false;
+document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;sw=true},{passive:true});
+document.addEventListener('touchmove',function(e){if(sw)e.preventDefault()},{passive:false});
+document.addEventListener('touchend',function(e){
+  if(!sw)return;sw=false;
+  var dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>40){if(dx<0)next();else prev()}
+},{passive:true});
+
+// Init
+hA();sP(0,2,'page-current');
+uI();
+preload(0);
+
+// Auto-load page 2 after cover is displayed
+setTimeout(function(){loadPg(1)},500);
+
+})();
+</script>
+</body>
+</html>
